@@ -199,7 +199,7 @@ def main_worker(gpu, ngpus_per_node, args):
         try:
             print("=> loading checkpoint '{}'".format(args.resume))
             s3 = boto3.resource('s3')
-            s3.Bucket(args.s3bucket).download_file(args.resume, 'checkpoint.pth.tar')
+            s3.Bucket(args.s3bucket).download_file(os.path.join(args.s3prefix,args.resume), 'checkpoint.pth.tar')
             if args.gpu is None:
                 checkpoint = torch.load('checkpoint.pth.tar')
             else:
@@ -209,7 +209,7 @@ def main_worker(gpu, ngpus_per_node, args):
         except:
             print("=> loading fallback checkpoint '{}'".format(args.resume_fallback))
             s3 = boto3.resource('s3')
-            s3.Bucket(args.s3bucket).download_file(args.resume_fallback, 'checkpoint.pth.tar')
+            s3.Bucket(args.s3bucket).download_file(os.path.join(args.s3prefix,args.resume_fallback), 'checkpoint.pth.tar')
             if args.gpu is None:
                 checkpoint = torch.load('checkpoint.pth.tar')
             else:
