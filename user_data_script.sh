@@ -1,5 +1,8 @@
 #!/bin/bash
-# Need to run USER_DATA=`base64 user_data_script.sh -w0`
+# To base64 encode, need to run 
+# USER_DATA=`base64 user_data_script.sh -w0` 
+# and insert into JSON
+
 # Get instance ID, Instance AZ, Volume ID and Volume AZ 
 INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 INSTANCE_AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
@@ -23,6 +26,16 @@ if [ $VOLUME_ID ]; then
 			--region $AWS_REGION --volume-id $VOLUME_ID \
 			--instance-id $INSTANCE_ID --device /dev/sdi
 		sleep 10
+
+        # Make some disc space
+        cd /home/ubuntu/anaconda3/envs/
+        rm -rf amazonei* &
+        rm -rf theano* &
+        rm -rf tensorflow* &
+        rm -rf mxnet* &
+        rm -rf caffe* &
+        rm -rf cntk* &
+        rm -rf chainer* &
 
 		# Mount volume and change ownership, since this script is run as root
 		mkdir /imagenet
