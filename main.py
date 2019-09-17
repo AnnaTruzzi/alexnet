@@ -207,18 +207,16 @@ def main_worker(gpu, ngpus_per_node, args):
                 loc = 'cuda:{}'.format(args.gpu)
                 checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
         except:
-            if os.path.isfile(args.resume_fallback):
-                print("=> loading fallback checkpoint '{}'".format(args.resume_fallback))
-                s3 = boto3.resource('s3')
-                s3.Bucket(args.s3bucket).download_file(args.resume_fallback, 'checkpoint.pth.tar')
-                if args.gpu is None:
-                    checkpoint = torch.load('checkpoint.pth.tar')
-                else:
-                    # Map model to be loaded to specified single gpu.
-                    loc = 'cuda:{}'.format(args.gpu)
-                    checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
+            print("=> loading fallback checkpoint '{}'".format(args.resume_fallback))
+            s3 = boto3.resource('s3')
+            s3.Bucket(args.s3bucket).download_file(args.resume_fallback, 'checkpoint.pth.tar')
+            if args.gpu is None:
+                checkpoint = torch.load('checkpoint.pth.tar')
             else:
-                print("No fallback checkpoint present")
+                # Map model to be loaded to specified single gpu.
+                loc = 'cuda:{}'.format(args.gpu)
+                checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
+            
         args.start_epoch = checkpoint['epoch']
         best_acc1 = checkpoint['best_acc1']
         if args.gpu is not None:
