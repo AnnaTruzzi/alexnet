@@ -16,6 +16,8 @@ import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
+from tempfile import NamedTemporaryFile
+
 #import torchvision.models as models
 
 import models # Use deepcluster version
@@ -196,27 +198,34 @@ def main_worker(gpu, ngpus_per_node, args):
     
     # optionally resume from a checkpoint
     if args.resume:
+        # Create a temporary filename for the checkpoint
+        f = NamedTemporaryFile(delete=False)
         try:
-            print("=> loading checkpoint '{}'".format(args.resume))
+            f.close()
+            print("=> loading checkpoint '%s' to '%s'"%(os.path.join(args.s3prefix,args.resume),f.name))
             s3 = boto3.resource('s3')
-            s3.Bucket(args.s3bucket).download_file(os.path.join(args.s3prefix,args.resume), 'checkpoint.pth.tar')
+            s3.Bucket(args.s3bucket).download_file(os.path.join(args.s3prefix,args.resume), f.name)
             if args.gpu is None:
-                checkpoint = torch.load('checkpoint.pth.tar')
+                checkpoint = torch.load(f.name)
             else:
                 # Map model to be loaded to specified single gpu.
                 loc = 'cuda:{}'.format(args.gpu)
-                checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
+                checkpoint = torch.load(f.name, map_location=loc)
+            os.unlink(f.name)
+
         except:
-            print("=> loading fallback checkpoint '{}'".format(args.resume_fallback))
+            # Fallback - previous file might be corrupt
+            print("=> loading checkpoint '%s' to '%s'"%(os.path.join(args.s3prefix,args.resume_fallback),f.name))
             s3 = boto3.resource('s3')
-            s3.Bucket(args.s3bucket).download_file(os.path.join(args.s3prefix,args.resume_fallback), 'checkpoint.pth.tar')
+            s3.Bucket(args.s3bucket).download_file(os.path.join(args.s3prefix,args.resume_fallback), f.name)
             if args.gpu is None:
-                checkpoint = torch.load('checkpoint.pth.tar')
+                checkpoint = torch.load(f.name)
             else:
                 # Map model to be loaded to specified single gpu.
                 loc = 'cuda:{}'.format(args.gpu)
-                checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
-            
+                checkpoint = torch.load(f.name, map_location=loc)
+            os.unlink(f.name)
+
         args.start_epoch = checkpoint['epoch']
         best_acc1 = checkpoint['best_acc1']
         if args.gpu is not None:
