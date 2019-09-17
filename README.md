@@ -1,5 +1,14 @@
 # ImageNet training in PyTorch
 
+## Modifcations to standard code
+Rhodri Cusack 2019-08-17
+Models have been changed to match deepcluster versions, with sobel filtering front end
+
+
+
+
+
+
 This implements training of popular model architectures, such as ResNet, AlexNet, and VGG on the ImageNet dataset.
 
 ## Requirements
