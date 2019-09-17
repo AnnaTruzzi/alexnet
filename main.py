@@ -73,6 +73,10 @@ parser.add_argument('--multiprocessing-distributed', action='store_true',
                          'N processes per node, which has N GPUs. This is the '
                          'fastest way to use PyTorch for either single node or '
                          'multi node data parallel training')
+parser.add_argument('--s3bucket', default=None, type=string,
+                    help='s3 bucket to upload results to.')
+parser.add_argument('--s3prefix', default=None, type=string,
+                    help='s3 prefix for checkpoints')
 
 best_acc1 = 0
 
@@ -135,6 +139,15 @@ def main_worker(gpu, ngpus_per_node, args):
     else:
         print("=> creating model '{}'".format(args.arch))
         model = models.__dict__[args.arch]()
+
+	# Upload starting state to check s3 upload, if that is happening
+        save_checkpoint({
+                'epoch': 0,
+                'arch': args.arch,
+                'state_dict': model.state_dict(),
+                'best_acc1': -1,
+                'optimizer' : None,
+        }, args, False, filename='checkpoint_0.pth.tar')
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -257,7 +270,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'state_dict': model.state_dict(),
                 'best_acc1': best_acc1,
                 'optimizer' : optimizer.state_dict(),
-            }, is_best)
+            }, args, is_best, filename='checkpoint_%d.pth.tar'%(epoch+1))
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -350,10 +363,13 @@ def validate(val_loader, model, criterion, args):
     return top1.avg
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+def save_checkpoint(state, args,is_best, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
     if is_best:
         shutil.copyfile(filename, 'model_best.pth.tar')
+    if args.s3bucket: 
+        s3_client = boto3.client('s3')
+        response = s3_client.upload_file(filename,args.s3bucket,args.s3prefix)
 
 
 class AverageMeter(object):
