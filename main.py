@@ -191,8 +191,43 @@ def main_worker(gpu, ngpus_per_node, args):
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
-
+    
     # optionally resume from a checkpoint
+    if args.resume:
+        try:
+            print("=> loading checkpoint '{}'".format(args.resume))
+            s3 = boto3.resource('s3')
+            s3.Bucket(args.bucket).download_file(args.resume, 'checkpoint.pth.tar')
+            if args.gpu is None:
+                checkpoint = torch.load('checkpoint.pth.tar')
+            else:
+                # Map model to be loaded to specified single gpu.
+                loc = 'cuda:{}'.format(args.gpu)
+                checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
+        except:
+            if os.path.isfile(args.resume_fallback):
+                print("=> loading fallback checkpoint '{}'".format(args.resume_fallback))
+                s3 = boto3.resource('s3')
+                s3.Bucket(args.bucket).download_file(args.resume_fallback, 'checkpoint.pth.tar')
+                if args.gpu is None:
+                    checkpoint = torch.load('checkpoint.pth.tar')
+                else:
+                    # Map model to be loaded to specified single gpu.
+                    loc = 'cuda:{}'.format(args.gpu)
+                    checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
+                else:
+                    print("No fallback checkpoint present")
+        args.start_epoch = checkpoint['epoch']
+        best_acc1 = checkpoint['best_acc1']
+        if args.gpu is not None:
+            # best_acc1 may be from a checkpoint from a different GPU
+            best_acc1 = best_acc1.to(args.gpu)
+        model.load_state_dict(checkpoint['state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer'])
+        print("=> loaded checkpoint '{}' (epoch {})"
+                .format(args.resume, checkpoint['epoch']))
+
+   
     if args.resume:
         if os.path.isfile(args.resume):
             print("=> loading checkpoint '{}'".format(args.resume))
