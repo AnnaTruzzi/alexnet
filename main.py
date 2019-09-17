@@ -215,8 +215,8 @@ def main_worker(gpu, ngpus_per_node, args):
                     # Map model to be loaded to specified single gpu.
                     loc = 'cuda:{}'.format(args.gpu)
                     checkpoint = torch.load('checkpoint.pth.tar', map_location=loc)
-                else:
-                    print("No fallback checkpoint present")
+            else:
+                print("No fallback checkpoint present")
         args.start_epoch = checkpoint['epoch']
         best_acc1 = checkpoint['best_acc1']
         if args.gpu is not None:
