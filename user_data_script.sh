@@ -1,6 +1,6 @@
 #!/bin/bash
 # To base64 encode, need to run 
-# USER_DATA=`base64 user_data_script.sh -w0` 
+# echo `base64 user_data_script.sh -w0` 
 # and insert into JSON
 
 # Get instance ID, Instance AZ, Volume ID and Volume AZ 
@@ -29,13 +29,7 @@ if [ $VOLUME_ID ]; then
 
         # Make some disc space
         cd /home/ubuntu/anaconda3/envs/
-        rm -rf amazonei* &
-        rm -rf theano* &
-        rm -rf tensorflow* &
-        rm -rf mxnet* &
-        rm -rf caffe* &
-        rm -rf cntk* &
-        rm -rf chainer* &
+        rm -rf amazonei* theano* tensorflow* mxnet* caffe* cntk* chainer* &
 
 		# Mount volume and change ownership, since this script is run as root
 		mkdir /imagenet
@@ -48,11 +42,11 @@ if [ $VOLUME_ID ]; then
 		chown -R ubuntu: alexnet
 		cd alexnet/
 
-		# Install FAISS
-		sudo -H -u ubuntu bash -c "source /home/ubuntu/anaconda3/bin/activate pytorch_p27; conda install faiss-gpu cudatoolkit=10.0 -c pytorch --yes"
+		# Install FAISS - not needed for Alexnet
+#		sudo -H -u ubuntu bash -c "source /home/ubuntu/anaconda3/bin/activate pytorch_p36; conda install faiss-gpu cudatoolkit=10.0 -c pytorch --yes"
 
 		# Initiate training using the tensorflow_36 conda environment
-		sudo -H -u ubuntu bash -c "source /home/ubuntu/anaconda3/bin/activate pytorch_p27; ./main.sh"
+		sudo -H -u ubuntu bash -c "./main.sh"
 fi
 
 # After training, clean up by cancelling spot requests and terminating itself
