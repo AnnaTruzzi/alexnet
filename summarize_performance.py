@@ -11,7 +11,7 @@ import matplotlib
 df=pd.DataFrame(columns=['epoch','conv','prec1','prec5','loss_log'])
 df_aoa=pd.DataFrame(columns=['epoch','conv','aoa','loss','node'])
 
-for epoch in range(0,80):
+for epoch in range(0,30):
     for conv in range(1,6):
         lcpth='/home/ubuntu/linearclass/linearclass_time_%d_conv_%d'%(epoch,conv)
         print(lcpth)
