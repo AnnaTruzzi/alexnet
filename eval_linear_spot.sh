@@ -15,12 +15,14 @@ CHECKPOINTPATH="rhodricusack/alexnet/checkpoints"
 LINEARCLASSBUCKET="neurana-imaging"
 LINEARCLASSPATH="rhodricusack/alexnet/linearclass"
 
-SQSURL="https://sqs.eu-west-1.amazonaws.com/807820536621/deepcluster-linearclass.fifo"
+SQSURL="https://sqs.eu-west-1.amazonaws.com/807820536621/alexnet-linearclass.fifo"
 EXP="${HOME}/linearclass"
 echo "${EXP}"
 
 # This will only work for NVIDIA GPUs
 NGPUS=`lspci|grep 'NVIDIA'| wc -l`
+
+NGPUS=4
 
 for ((tp=0;tp<NGPUS;tp++)); do 
     mkdir -p ${EXP}_${tp}

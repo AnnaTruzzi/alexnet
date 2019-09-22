@@ -6,7 +6,7 @@ CHECKPOINTBUCKET="neurana-imaging"
 CHECKPOINTPATH="rhodricusack/alexnet/checkpoints"
 
 echo "Fill SQS with requests, where checkpoint exists but linearclass does not"
-for ((tp=5;tp<25;tp+=5)); do
+for ((tp=5;tp<=25;tp+=5)); do
     getcheckpoint=$(aws s3 ls "s3://${CHECKPOINTBUCKET}/${CHECKPOINTPATH}/checkpoint_${tp}.pth.tar")
     if [ ! -z "$getcheckpoint" ]; then
         echo "Found checkpoint file $getcheckpoint"
