@@ -60,6 +60,10 @@ def compute_features(dataloader, model, N):
         if isinstance(m, nn.ReLU):
             m.register_forward_hook(_store_feats)
 
+    for m in model.classifier.modules():
+        if isinstance(m, nn.ReLU):
+            m.register_forward_hook(_store_feats)
+            
     for i, input_tensor in enumerate(dataloader):
         with torch.no_grad():
             input_var, label = input_tensor[0].cuda(),input_tensor[2]
@@ -92,9 +96,9 @@ def get_activations(offset):
 if __name__ == '__main__':
     model = models.alexnet(sobel=True, bn=True, out=1000) 
     model.cuda()
-    image_pth = '/home/CUSACKLAB/annatruzzi/cichy2016/algonautsChallenge2019/Training_Data/118_Image_Set/118images' 
+    image_pth = '/home/CUSACKLAB/annatruzzi/cichy2016/algonautsChallenge2019/Training_Data/92_Image_Set/92images' 
     act = get_activations(image_pth)
 
-    with open('/home/CUSACKLAB/annatruzzi/cichy2016/cichy118_activations_untrained_alexnet.pickle', 'wb') as handle:
+    with open('/home/CUSACKLAB/annatruzzi/cichy2016/niko92_activations_untrained_alexnet.pickle', 'wb') as handle:
         pickle.dump(act, handle)
 
